@@ -55,12 +55,21 @@ int main() {
 						std::cout << "art word 2: " << std::hex << artWord2 << std::dec << ". file: " << fileName << std::endl;
 						const std::string art = SectorNPCReverser::getArtName(artWord2);
 						const uint32_t tileInstanceId = (rowTileIndex % 64) + (columnTileIndex % 64) * 64;
+						
+						uint32_t artWord1 = readUpTo4Bytes(mobFile, MobConstants::ArtWord1Offset, MobConstants::ArtWord1Length);
+						artWord1 = artWord1 << 0x10;
+						std::cout << "art word 1: " << std::hex << artWord1 << std::dec << ". file: " << fileName << std::endl;
+						const uint8_t paletteIndex = SectorNPCReverser::getPaletteIndex(artWord1);
+						const uint8_t rotationIndex = SectorNPCReverser::getRotationIndex(artWord1);
 
 						boost::json::object npcObj;
 						npcObj["tileInstanceId"] = tileInstanceId;
 						npcObj["textureName"] = art;
+						npcObj["paletteIndex"] = paletteIndex;
+						npcObj["rotationIndex"] = rotationIndex;
 						npcs.push_back(npcObj);
 					}
+					mobFile.close();
 				}
 				else {
 					std::cout << "Couldn't open the .mob file: " << fileName << std::endl;

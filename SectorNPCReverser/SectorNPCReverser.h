@@ -164,12 +164,46 @@ public:
 		throw std::runtime_error("Couldn't parse artword");
 	}
 
+	inline static const uint8_t getPaletteIndex(const uint32_t& artWord1) {
+		const std::unordered_map<uint32_t, uint8_t> indexes = paletteIndexes();
+		const uint32_t paletteBit = (artWord1 & 0x00F00000) >> 20;
+		uint8_t paletteIndex{};
+		const std::unordered_map<uint32_t, uint8_t>::const_iterator iter = indexes.find(paletteBit);
+		if (iter != indexes.end()) {
+			paletteIndex = iter->second;
+		}
+		else throw std::runtime_error("Cannot identify palette index. artWord1: " + std::to_string(artWord1));
+		return paletteIndex;
+	}
+
+	inline static const uint8_t getRotationIndex(const uint32_t& artWord1) {
+		const uint32_t rotationByte = (artWord1 & 0xFF000000) >> 0x18;
+		const uint32_t offset = rotationByte / 64;
+		const uint32_t rotationIndex = (rotationByte - offset * 64) / 8;
+		if (rotationIndex > 0x7) throw std::runtime_error("rotationIndex > 0x7. artWord1: " + std::to_string(artWord1));
+		return rotationIndex;
+	}
+
 private:
 	inline static const std::string twoBytesToAscii(const uint16_t& bytes) {
 		uint8_t firstByte = bytes >> 0x8;
 		uint8_t secondByte = bytes & 0xFF;
 		const std::string asciiStr{ static_cast<char>(firstByte), static_cast<char>(secondByte) };
 		return asciiStr;
+	}
+
+	static const std::unordered_map<uint32_t, uint8_t> paletteIndexes() {
+		return std::unordered_map<uint32_t, uint8_t>{
+			std::make_pair(0x0, 0x0),
+				std::make_pair(0x1, 0x1),
+				std::make_pair(0x2, 0x2),
+				std::make_pair(0x3, 0x3),
+
+				std::make_pair(0xC, 0x0),
+				std::make_pair(0xD, 0x1),
+				std::make_pair(0xE, 0x2),
+				std::make_pair(0xF, 0x3)
+		};
 	}
 
 	static const std::unordered_map<uint32_t, std::string> uniqueNPCArtPrefixes() {
